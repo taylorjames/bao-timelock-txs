@@ -1,5 +1,3 @@
-# Sushi Timelock Transaction Viewer
+# BAO Timelock Transaction Viewer
 
-Track SushiSwap's timelock contract.
-
-https://sushi-timelock.txs.wtf/
+Track Bao.finance's timelock contract.
