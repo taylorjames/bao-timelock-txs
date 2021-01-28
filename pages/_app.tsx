@@ -26,10 +26,10 @@ function App({ Component, pageProps }: AppProps) {
     <ZeitProvider theme={customTheme}>
       <CssBaseline>
         <Head>
-          <title>Sushi | txs.wtf</title>
+          <title>BAO | Timelock Txs</title>
           <meta
             name="description"
-            content="Monitor transactions occuring on the SUSHI timelock address."
+            content="Monitor transactions occuring on the BAO timelock address."
           />
           <link rel="shortcut icon" href="/favicon.ico" />
           <meta

@@ -17,7 +17,7 @@ import { useState, useEffect } from "react";
 import masterchefAbi from "./masterchef-abi.json";
 import timelockAbi from "./timelock-abi.json";
 
-const timelockAddress = "0x9a8541ddf3a932a9a922b607e9cf7301f1d47bd1";
+const timelockAddress = "0x2dEe6958272308Ff5AE4831aE038Abd4ac96Be04";
 const etherscanProvider = new ethers.providers.EtherscanProvider(1);
 
 // Timelock contract
@@ -39,37 +39,46 @@ const Main = () => {
     // Don't want first tx, as that is contract data
     const h = await etherscanProvider.getHistory(timelockAddress);
     const newest = h.slice(1).reverse();
-
-    const decoded = newest.map(
+    const decoded = [];
+    newest.forEach(
       ({ data, from, blockNumber, timestamp, hash }) => {
         const decodedFunction = abiDecoder.decodeMethod(data);
-
-        if (specialFunctionNames.includes(decodedFunction.name)) {
+        if (decodedFunction && specialFunctionNames.includes(decodedFunction.name)) {
           // target, value, signature, data, eta
           const signature = decodedFunction.params[2].value;
           const data = decodedFunction.params[3].value;
 
-          const functionParams = signature
+          let functionParams = signature
             .split("(")[1]
             .split(")")[0]
             .split(",");
 
-          const decodedData = ethers.utils.defaultAbiCoder.decode(
-            functionParams,
-            data
-          );
+          // fixes one transaction with the wrong params format
+          if (functionParams[0].indexOf(' ')) functionParams = functionParams[0].split(' ');
+          
+          
+          let decodedData;
+          try{
+            decodedData = ethers.utils.defaultAbiCoder.decode(
+              functionParams,
+              data,
+              true
+            );
+            decodedFunction.params[3].value = "[" + decodedData.map((x) => x.toString()).join(", ") + "]";
+          }catch(e){
+            console.log('err', e);
+          }
+          
 
-          decodedFunction.params[3].value =
-            "[" + decodedData.map((x) => x.toString()).join(", ") + "]";
+          decoded.push({
+            decodedFunction,
+            from,
+            timestamp,
+            blockNumber,
+            hash,
+          }) 
         }
-
-        return {
-          decodedFunction,
-          from,
-          timestamp,
-          blockNumber,
-          hash,
-        };
+        
       }
     );
 
@@ -84,12 +93,12 @@ const Main = () => {
 
   return (
     <Page>
-      <Text h2>SushiSwap Timelock Transactions</Text>
+      <Text h2>Bao.Finance Timelock Transactions</Text>
       <Text type="secondary">
         Only last 10,000 transactions displayed.{" "}
         <Link
           color
-          href="https://etherscan.io/address/0x9a8541ddf3a932a9a922b607e9cf7301f1d47bd1"
+          href="https://etherscan.io/address/0x2dee6958272308ff5ae4831ae038abd4ac96be04"
         >
           Timelock Contract.
         </Link>
@@ -101,7 +110,6 @@ const Main = () => {
         history.map((x) => {
           const { decodedFunction, blockNumber, from, hash, timestamp } = x;
           const humanTimestamp = new Date(timestamp * 1000).toTimeString();
-
           return (
             <>
               <Row>
@@ -135,11 +143,7 @@ const Main = () => {
       <Row style={{ textAlign: "center" }}>
         <Col>
           <Text h5>
-            by{" "}
-            <Link color href="https://twitter.com/kendricktrh">
-              @kendricktrh
-            </Link>,{' '}
-            <Link color href="https://github.com/abstracted-finance/sushi-txs-wtf">
+            <Link color href="https://github.com/taylorjames/bao-timelock-txs">
               code
             </Link>
           </Text>
